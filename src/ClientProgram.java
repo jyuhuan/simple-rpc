@@ -56,7 +56,6 @@ public class ClientProgram {
             Console.writeLine(e.getMessage());
         }
 
-
         double[] array = new double[] { 7.1, 4.4 };
         try {
             double[] sortedArray = MathLib.sort(array);

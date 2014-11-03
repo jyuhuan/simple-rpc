@@ -14,20 +14,20 @@ import java.io.IOException;
  */
 public class MathLib {
 
-    public static double[][] multiply(double[][] a, double[][] b) throws IOException, ProcedureExecutionException {
+    public static double[][] multiply(double[][] a, double[][] b) throws IOException {
         return ClientStub.multiply(a, b);
     }
 
-    public static double[] sort(double[] array) throws IOException, ProcedureExecutionException {
+    public static double[] sort(double[] array) throws IOException {
 
         return ClientStub.sort(array);
     }
 
-    public static double max(double[] array) throws IOException, ProcedureExecutionException {
+    public static double max(double[] array) throws IOException {
         return ClientStub.max(array);
     }
 
-    public static double min(double[] array) throws IOException, ProcedureExecutionException {
+    public static double min(double[] array) throws IOException {
         return ClientStub.min(array);
     }
 

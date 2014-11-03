@@ -5,10 +5,12 @@
 
 package me.yuhuan.network.exceptions;
 
+import java.io.IOException;
+
 /**
  * Created by Yuhuan Jiang on 10/27/14.
  */
-public class ProcedureNotSupportedException extends Exception {
+public class ProcedureNotSupportedException extends IOException {
     public ProcedureNotSupportedException(String message) {
         super(message);
     }

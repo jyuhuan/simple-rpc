@@ -9,6 +9,7 @@ import me.yuhuan.network.core.TcpMessenger;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.core.UdpMessenger;
+import me.yuhuan.network.exceptions.ProcedureNotSupportedException;
 import me.yuhuan.network.exceptions.ReliableUdpTransmissionFailedException;
 import me.yuhuan.network.rpc.PortMap;
 import me.yuhuan.network.rpc.RpcData;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Created by Yuhuan Jiang on 10/18/14.
@@ -43,7 +45,7 @@ public class ClientStub {
          * Check if the server supports the procedure.
          */
         if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            // TODO: throw new ProcedureNotSupportedException();
+            throw new ProcedureNotSupportedException("The procedure multiply is not supported. ");
         }
 
         /**
@@ -118,7 +120,7 @@ public class ClientStub {
          * Check if the server supports the procedure.
          */
         if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            // TODO: throw new ProcedureNotSupportedException();
+            throw new ProcedureNotSupportedException("The procedure sort is not supported. ");
         }
 
         /**
@@ -186,7 +188,7 @@ public class ClientStub {
          * Check if the server supports the procedure.
          */
         if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            // TODO: throw new ProcedureNotSupportedException();
+            throw new ProcedureNotSupportedException("The procedure max is not supported. ");
         }
 
         /**
@@ -253,7 +255,7 @@ public class ClientStub {
          * Check if the server supports the procedure.
          */
         if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            // TODO: throw new ProcedureNotSupportedException();
+            throw new ProcedureNotSupportedException("The procedure min is not supported. ");
         }
 
         /**
@@ -309,25 +311,28 @@ public class ClientStub {
     }
 
     private static boolean procedureAvailabilityCheck(ProcedureInfo procedureInfo, InetAddress serverIp, int serverTcpPort) throws IOException {
-        // TODO: check availability
+        try {
+            Socket socketToServer = new Socket(serverIp, serverTcpPort);
+            DataOutputStream outputStream = new DataOutputStream(socketToServer.getOutputStream());
+            DataInputStream inputStream = new DataInputStream(socketToServer.getInputStream());
 
-        Socket socketToServer = new Socket(serverIp, serverTcpPort);
-        DataOutputStream outputStream = new DataOutputStream(socketToServer.getOutputStream());
-        DataInputStream inputStream = new DataInputStream(socketToServer.getInputStream());
+            TcpMessenger.sendTag(outputStream, Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK);
+            TcpMessenger.sendProcedureInfo(outputStream, procedureInfo);
 
-        TcpMessenger.sendTag(outputStream, Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK);
-        TcpMessenger.sendProcedureInfo(outputStream, procedureInfo);
+            int result = TcpMessenger.receiveTag(inputStream);
 
-        int result = TcpMessenger.receiveTag(inputStream);
-
-        if (result == Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES) {
-            return true;
-        }
-        else {
-            if (_localCache.containsProcedure(procedureInfo)) {
-                _localCache.removeProcedure(procedureInfo);
+            if (result == Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES) {
+                return true;
             }
-            return false;
+            else {
+                if (_localCache.containsProcedure(procedureInfo)) {
+                    _localCache.removeProcedure(procedureInfo);
+                }
+                return false;
+            }
+        }
+        catch (SocketException e) {
+            throw new ProcedureNotSupportedException("Procedure availability check failed. Could not connect to server " + serverIp.getHostAddress() + " at port " + serverTcpPort + ".");
         }
     }
 
@@ -349,16 +354,21 @@ public class ClientStub {
         int portMapperPort = Integer.parseInt(lines[1]);
 
         // Look up the server info by procedure info
-        Socket socketToPortMapper = new Socket(portMapperIp, portMapperPort);
+        try {
+            Socket socketToPortMapper = new Socket(portMapperIp, portMapperPort);
 
-        DataOutputStream dataOutputStream = new DataOutputStream(socketToPortMapper.getOutputStream());
-        DataInputStream dataInputStream = new DataInputStream(socketToPortMapper.getInputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(socketToPortMapper.getOutputStream());
+            DataInputStream dataInputStream = new DataInputStream(socketToPortMapper.getInputStream());
 
-        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_LOOK_FOR_PROCEDURE);
-        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureInfo);
+            TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_LOOK_FOR_PROCEDURE);
+            TcpMessenger.sendProcedureInfo(dataOutputStream, procedureInfo);
 
-        ServerInfo result = TcpMessenger.receiveServerInfo(dataInputStream);
-        _localCache.register(procedureInfo, result);
-        return result;
+            ServerInfo result = TcpMessenger.receiveServerInfo(dataInputStream);
+            _localCache.register(procedureInfo, result);
+            return result;
+        }
+        catch (SocketException e) {
+            throw new ProcedureNotSupportedException("Port mapper table lookup failed. Could not connect to the port mapper on " + portMapperIp + " at port " + portMapperPort + ". ");
+        }
     }
 }
