@@ -5,7 +5,7 @@
 
 package me.yuhuan.rpclibraries.math;
 
-import me.yuhuan.network.core.Messenger;
+import me.yuhuan.network.core.TcpMessenger;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.core.UdpMessenger;
@@ -53,27 +53,27 @@ public class ClientStub {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        Messenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
 
 
         /**
          * Tell the server the transaction ID
          */
         int transactionId = UidGenerator.next();
-        Messenger.sendTransactionId(dataOutputStream, transactionId);
+        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
 
         /**
          * Tell the server where to reply the result
          */
         DatagramSocket socket = new DatagramSocket();
-        Messenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
 
 
         /**
          * Get the UDP port number of the server
          */
-        int newServerPort = Messenger.receivePortNumber(dataInputStream);
+        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
 
 
         /**
@@ -105,7 +105,7 @@ public class ClientStub {
         }
     }
 
-    public static double[] sort(double[] array) throws IOException, ReliableUdpTransmissionFailedException {
+    public static double[] sort(double[] array) throws IOException {
         /**
          * Go to the port mapper, and obtain the server information.
          */
@@ -128,27 +128,27 @@ public class ClientStub {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        Messenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
 
 
         /**
          * Tell the server the transaction ID
          */
         int transactionId = UidGenerator.next();
-        Messenger.sendTransactionId(dataOutputStream, transactionId);
+        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
 
         /**
          * Tell the server where to reply the result
          */
         DatagramSocket socket = new DatagramSocket();
-        Messenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
 
 
         /**
          * Get the UDP port number of the server
          */
-        int newServerPort = Messenger.receivePortNumber(dataInputStream);
+        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
 
         /**
          * Send the two matrices to the server.
@@ -173,7 +173,7 @@ public class ClientStub {
 
     }
 
-    public static double max(double[] array) throws IOException, ReliableUdpTransmissionFailedException {
+    public static double max(double[] array) throws IOException {
         /**
          * Go to the port mapper, and obtain the server information.
          */
@@ -196,27 +196,27 @@ public class ClientStub {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        Messenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
 
 
         /**
          * Tell the server the transaction ID
          */
         int transactionId = UidGenerator.next();
-        Messenger.sendTransactionId(dataOutputStream, transactionId);
+        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
 
         /**
          * Tell the server where to reply the result
          */
         DatagramSocket socket = new DatagramSocket();
-        Messenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
 
 
         /**
          * Get the UDP port number of the server
          */
-        int newServerPort = Messenger.receivePortNumber(dataInputStream);
+        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
 
         /**
          * Send the parameter to the server.
@@ -240,7 +240,7 @@ public class ClientStub {
         }
     }
 
-    public static double min(double[] array) throws IOException, ReliableUdpTransmissionFailedException {
+    public static double min(double[] array) throws IOException {
         /**
          * Go to the port mapper, and obtain the server information.
          */
@@ -263,27 +263,27 @@ public class ClientStub {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        Messenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
 
 
         /**
          * Tell the server the transaction ID
          */
         int transactionId = UidGenerator.next();
-        Messenger.sendTransactionId(dataOutputStream, transactionId);
+        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
 
         /**
          * Tell the server where to reply the result
          */
         DatagramSocket socket = new DatagramSocket();
-        Messenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
 
 
         /**
          * Get the UDP port number of the server
          */
-        int newServerPort = Messenger.receivePortNumber(dataInputStream);
+        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
 
         /**
          * Send the parameter to the server.
@@ -315,14 +315,18 @@ public class ClientStub {
         DataOutputStream outputStream = new DataOutputStream(socketToServer.getOutputStream());
         DataInputStream inputStream = new DataInputStream(socketToServer.getInputStream());
 
-        Messenger.sendTag(outputStream, Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK);
-        Messenger.sendProcedureInfo(outputStream, procedureInfo);
+        TcpMessenger.sendTag(outputStream, Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK);
+        TcpMessenger.sendProcedureInfo(outputStream, procedureInfo);
 
-        int result = Messenger.receiveTag(inputStream);
+        int result = TcpMessenger.receiveTag(inputStream);
 
-        if (result == Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES) return true;
+        if (result == Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES) {
+            return true;
+        }
         else {
-            _localCache.removeProcedure(procedureInfo);
+            if (_localCache.containsProcedure(procedureInfo)) {
+                _localCache.removeProcedure(procedureInfo);
+            }
             return false;
         }
     }
@@ -350,10 +354,10 @@ public class ClientStub {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToPortMapper.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToPortMapper.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_LOOK_FOR_PROCEDURE);
-        Messenger.sendProcedureInfo(dataOutputStream, procedureInfo);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_LOOK_FOR_PROCEDURE);
+        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureInfo);
 
-        ServerInfo result = Messenger.receiveServerInfo(dataInputStream);
+        ServerInfo result = TcpMessenger.receiveServerInfo(dataInputStream);
         _localCache.register(procedureInfo, result);
         return result;
     }

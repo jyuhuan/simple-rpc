@@ -65,7 +65,7 @@ public class PortMapper {
                 // Reads the first int. This int should be either:
                 //     Tags.REQUEST_REGISTER_PROCEDURE, or
                 //     Tags.REQUEST_LOOK_FOR_PROCEDURE
-                int tag = Messenger.receiveTag(dataInputStream);
+                int tag = TcpMessenger.receiveTag(dataInputStream);
                 if (tag == Tags.REQUEST_REGISTER_PROCEDURE) {
                     Console.writeLine("Client " + clientSocket + " wants to register a procedure. ");
                     (new PortMapperRegistrationWorker(clientSocket)).start();
@@ -108,10 +108,10 @@ public class PortMapper {
                 DataOutputStream dataOutputStream = new DataOutputStream(_clientSocket.getOutputStream());
 
                 // Reads a list of ProcedureInfo objects.
-                ArrayList<ProcedureInfo> proceduresToRegister = Messenger.receiveProcedureInfos(dataInputStream);
+                ArrayList<ProcedureInfo> proceduresToRegister = TcpMessenger.receiveProcedureInfos(dataInputStream);
 
                 // Reads the ServerInfo.
-                ServerInfo serverInfo = Messenger.receiveServerInfo(dataInputStream);
+                ServerInfo serverInfo = TcpMessenger.receiveServerInfo(dataInputStream);
 
                 // The actually registration
                 Console.writeLine("Start registering for " + serverInfo.IPAddressString() + " at port " + serverInfo.portNumber);
@@ -121,7 +121,7 @@ public class PortMapper {
                 }
 
                 // Send a tag back to client to confirm the registration.
-                Messenger.sendTag(dataOutputStream, Tags.RESPOND_REGISTER_PROCEDURE);
+                TcpMessenger.sendTag(dataOutputStream, Tags.RESPOND_REGISTER_PROCEDURE);
             }
             catch (IOException e) {
                 Console.writeLine("IO error");
@@ -164,13 +164,13 @@ public class PortMapper {
                 DataOutputStream dataOutputStream = new DataOutputStream(_clientSocket.getOutputStream());
 
                 // Read a ProcedureInfo object from the client.
-                ProcedureInfo toFind = Messenger.receiveProcedureInfo(dataInputStream);
+                ProcedureInfo toFind = TcpMessenger.receiveProcedureInfo(dataInputStream);
 
                 // Query the port mapper table.
                 ServerInfo result = portMap.getServerByProcedure(toFind);
 
                 // Send the found ServerInfo back to client.
-                Messenger.sendServerInfo(dataOutputStream, result);
+                TcpMessenger.sendServerInfo(dataOutputStream, result);
             }
             catch (IOException e) {
                 Console.writeLine("IO error");

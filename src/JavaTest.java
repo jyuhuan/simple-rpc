@@ -5,9 +5,9 @@
 
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
+import me.yuhuan.network.core.TcpMessenger;
 import me.yuhuan.network.rpc.PortMap;
 import me.yuhuan.utility.Console;
-import me.yuhuan.network.core.Messenger;
 import me.yuhuan.utility.Tags;
 
 import java.io.DataInputStream;
@@ -45,10 +45,10 @@ public class JavaTest {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToPortMapper.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToPortMapper.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_LOOK_FOR_PROCEDURE);
-        Messenger.sendProcedureInfo(dataOutputStream, new ProcedureInfo(1234, 7, 1));
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_LOOK_FOR_PROCEDURE);
+        TcpMessenger.sendProcedureInfo(dataOutputStream, new ProcedureInfo(1234, 7, 1));
 
-        ServerInfo found = Messenger.receiveServerInfo(dataInputStream);
+        ServerInfo found = TcpMessenger.receiveServerInfo(dataInputStream);
 
         Console.writeLine(found.IPAddressString());
         Console.writeLine(found.portNumber + "");
@@ -59,7 +59,7 @@ public class JavaTest {
         DataOutputStream dataOutputStream = new DataOutputStream(socketToPortMapper.getOutputStream());
         DataInputStream dataInputStream = new DataInputStream(socketToPortMapper.getInputStream());
 
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_REGISTER_PROCEDURE);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_REGISTER_PROCEDURE);
 
 
         ArrayList<ProcedureInfo> toBeRegistered = new ArrayList<ProcedureInfo>();
@@ -68,10 +68,10 @@ public class JavaTest {
         toBeRegistered.add(new ProcedureInfo(1234, 9, 1));
         toBeRegistered.add(new ProcedureInfo(1234, 10, 1));
 
-        Messenger.sendProcedureInfos(dataOutputStream, toBeRegistered);
-        Messenger.sendServerInfo(dataOutputStream, new ServerInfo(Inet4Address.getLocalHost().getHostAddress(), 8888));
+        TcpMessenger.sendProcedureInfos(dataOutputStream, toBeRegistered);
+        TcpMessenger.sendServerInfo(dataOutputStream, new ServerInfo(Inet4Address.getLocalHost().getHostAddress(), 8888));
 
-        Console.writeLine("Response = " + Messenger.receiveTag(dataInputStream));
+        Console.writeLine("Response = " + TcpMessenger.receiveTag(dataInputStream));
     }
 
 }

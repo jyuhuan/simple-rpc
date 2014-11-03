@@ -14,7 +14,7 @@ import java.util.ArrayList;
 /**
  * Created by Yuhuan Jiang on 10/20/14.
  */
-public class Messenger {
+public class TcpMessenger {
 
     public static void sendTag(DataOutputStream dataOutputStream, int tag) throws IOException {
         dataOutputStream.writeInt(tag);

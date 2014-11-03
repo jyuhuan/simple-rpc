@@ -7,7 +7,7 @@
  * Created by Yuhuan Jiang on 10/16/14.
  */
 
-import me.yuhuan.network.core.Messenger;
+import me.yuhuan.network.core.TcpMessenger;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.core.UdpMessenger;
@@ -76,7 +76,7 @@ public class Server {
                 // Determine whether the client wants to:
                 //     (1) perform PAC, or
                 //     (2) execute a procedure.
-                int tag = Messenger.receiveTag(dataInputStream);
+                int tag = TcpMessenger.receiveTag(dataInputStream);
                 if (tag == Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK) {
                     Console.writeLine("Client " + clientSocket + " wants to perform a procedure availability check. ");
                     (new ProcedureAvailabilityCheckWorker(clientSocket)).start();
@@ -85,19 +85,19 @@ public class Server {
                     Console.writeLine("Client " + clientSocket + " wants to execute a procedure. ");
 
                     // Figure out which procedure the client wants to execute.
-                    ProcedureInfo procedureToExecute = Messenger.receiveProcedureInfo(dataInputStream);
+                    ProcedureInfo procedureToExecute = TcpMessenger.receiveProcedureInfo(dataInputStream);
 
                     // Get the transaction ID.
-                    int transactionId = Messenger.receiveTransactionId(dataInputStream);
+                    int transactionId = TcpMessenger.receiveTransactionId(dataInputStream);
 
                     // Get the UDP port number of the client, to which the result should be sent.
-                    int clientUdpPort = Messenger.receivePortNumber(dataInputStream);
+                    int clientUdpPort = TcpMessenger.receivePortNumber(dataInputStream);
 
                     // Create a UDP socket for the current client to send data to.
                     DatagramSocket udpSocketOfServer = new DatagramSocket(0);
 
                     // Tell the client to which port should the data be sent.
-                    Messenger.sendPortNumber(dataOutputStream, udpSocketOfServer.getLocalPort());
+                    TcpMessenger.sendPortNumber(dataOutputStream, udpSocketOfServer.getLocalPort());
 
                     // Start the execution worker.
                     if (procedureToExecute.equals(procedureMultiply)) {
@@ -136,7 +136,7 @@ public class Server {
         DataInputStream dataInputStream = new DataInputStream(socketToPortMapper.getInputStream());
 
         // Sends a tag to indication the intent to register procedures.
-        Messenger.sendTag(dataOutputStream, Tags.REQUEST_REGISTER_PROCEDURE);
+        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_REGISTER_PROCEDURE);
 
         // Prepare procedures to register
         ArrayList<ProcedureInfo> procedures = new ArrayList<ProcedureInfo>();
@@ -145,13 +145,13 @@ public class Server {
         }
 
         // Send the ProcedureInfo objects to the port mapper.
-        Messenger.sendProcedureInfos(dataOutputStream, procedures);
+        TcpMessenger.sendProcedureInfos(dataOutputStream, procedures);
 
         // Send the ServerInfo of this server to the port mapper.
-        Messenger.sendServerInfo(dataOutputStream, new ServerInfo(myIpAddress, myPortNumber));
+        TcpMessenger.sendServerInfo(dataOutputStream, new ServerInfo(myIpAddress, myPortNumber));
 
         // Prompt the response from the port mapper to the command line.
-        Console.writeLine("Response = " + Messenger.receiveTag(dataInputStream));
+        Console.writeLine("Response = " + TcpMessenger.receiveTag(dataInputStream));
     }
 
     /**
@@ -177,14 +177,14 @@ public class Server {
             try {
                 DataInputStream dataInputStream = new DataInputStream(_clientSocket.getInputStream());
                 DataOutputStream dataOutputStream = new DataOutputStream(_clientSocket.getOutputStream());
-                ProcedureInfo procedureToCheck = Messenger.receiveProcedureInfo(dataInputStream);
+                ProcedureInfo procedureToCheck = TcpMessenger.receiveProcedureInfo(dataInputStream);
 
                 // Checks whether the requested procedure is in the set of supported procedures,
                 // and send the result back to the client.
                 if (supportedProcedures.contains(procedureToCheck)) {
-                    Messenger.sendTag(dataOutputStream, Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES);
+                    TcpMessenger.sendTag(dataOutputStream, Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES);
                 }
-                else Messenger.sendTag(dataOutputStream, Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_NO);
+                else TcpMessenger.sendTag(dataOutputStream, Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_NO);
             }
             catch (IOException e) {
                 Console.writeLine("IO error");
