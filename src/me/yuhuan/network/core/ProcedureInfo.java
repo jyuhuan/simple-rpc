@@ -39,4 +39,9 @@ public class ProcedureInfo {
         return theOther.programID == programID && theOther.procedureID == procedureID && theOther.versionID == versionID;
     }
 
+    @Override
+    public String toString() {
+        return "(" + programID + "," + procedureID + "," + versionID + ")";
+    }
+
 }

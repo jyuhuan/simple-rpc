@@ -27,15 +27,16 @@ public class JavaTest {
     public static int PORT_MAPPER_PORT = 12345;
 
     public static void main(String[] args) throws IOException {
-        //testPortMapperLookup();
-        //testPortMapperRegistration();
 
-        PortMap map = new PortMap();
-        map.register(new ProcedureInfo(1, 2, 3), new ServerInfo("1.1.1.1", 45));
-        map.register(new ProcedureInfo(2, 2, 3), new ServerInfo("1.1.1.1", 45));
-        map.register(new ProcedureInfo(1, 2, 3), new ServerInfo("1.1.1.1", 45));
-        map.register(new ProcedureInfo(1, 2, 3), new ServerInfo("1.1.1.1", 45));
-        map.register(new ProcedureInfo(1, 3, 3), new ServerInfo("1.1.1.1", 45));
+        ServerInfo a = new ServerInfo("1.2.3.4", 5);
+        ServerInfo b = new ServerInfo("1.3.8.4", 6);
+        ServerInfo c = new ServerInfo("1.2.3.4", 5);
+
+        boolean ab = a.equals(b);
+        boolean ac = a.equals(c);
+        boolean bc = b.equals(c);
+
+
 
     }
 

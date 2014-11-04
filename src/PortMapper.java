@@ -6,6 +6,7 @@
 
 import me.yuhuan.io.TextFile;
 import me.yuhuan.network.core.*;
+import me.yuhuan.network.exceptions.ProcedureNotSupportedException;
 import me.yuhuan.network.rpc.PortMap;
 import me.yuhuan.utility.*;
 
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 
@@ -29,6 +31,8 @@ import java.util.ArrayList;
  *     (2) Lookup request from clients
  */
 public class PortMapper {
+
+    private static final int VALIDATION_INTERVAL = 1000;
 
     // The port mapper table. See class PortMap for details.
     public static PortMap portMap;
@@ -75,6 +79,9 @@ public class PortMapper {
                     Console.writeLine("Client " + clientSocket + " wants to look for a procedure. ");
                     (new PortMapperLookupWorker(clientSocket)).start();
                 }
+
+                // Start the validation worker
+                (new TableEntryValidationWorker(myIpAddress, myPortNumber)).start();
             }
         }
         finally {
@@ -183,6 +190,55 @@ public class PortMapper {
                 }
                 catch (IOException e) {
                     Console.writeLine("Socket to client " + _clientSocket.getInetAddress().getHostAddress() + ":" + _clientSocket.getPort() + " failed to close. ");
+                }
+            }
+        }
+    }
+
+    private static class TableEntryValidationWorker extends Thread {
+
+        String _myIp;
+        int _myPort;
+
+        public TableEntryValidationWorker(String myIpAddress, int myPortNumber) {
+            _myIp = myIpAddress;
+            _myPort = myPortNumber;
+        }
+
+        public void run() {
+            while (true) {
+                try {
+                    for (ProcedureInfo procedureInfo : portMap.getAllProcedureInfos()) {
+                        for (ServerInfo serverInfo : portMap.getServersByProcedure(procedureInfo)) {
+                            try {
+                                InetAddress serverIp = serverInfo.inetAddress();
+                                int serverTcpPort = serverInfo.portNumber;
+
+                                Socket socketToServer = new Socket(serverIp, serverTcpPort);
+                                DataOutputStream outputStream = new DataOutputStream(socketToServer.getOutputStream());
+                                DataInputStream inputStream = new DataInputStream(socketToServer.getInputStream());
+
+                                TcpMessenger.sendTag(outputStream, Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK);
+                                TcpMessenger.sendProcedureInfo(outputStream, procedureInfo);
+
+                                int result = TcpMessenger.receiveTag(inputStream);
+
+                                if (result != Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES) {
+                                    portMap.removeServerFromProcedure(serverInfo, procedureInfo);
+                                    Console.writeLine("Removed procedure " + procedureInfo + " from server " + serverInfo);
+                                }
+                            }
+                            catch (IOException e) {
+                                portMap.removeServerFromProcedure(serverInfo, procedureInfo);
+                                Console.writeLine("Removed procedure " + procedureInfo + " from server " + serverInfo);
+                            }
+                        }
+                    }
+
+                    Thread.sleep(VALIDATION_INTERVAL);
+                }
+                catch (InterruptedException e) {
+                    Console.writeLine("Hey, the validation worker of the port mapper on" + _myIp + " at " + _myPort + " died. ");
                 }
             }
         }

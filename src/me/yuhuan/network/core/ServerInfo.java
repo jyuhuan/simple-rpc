@@ -36,4 +36,32 @@ public class ServerInfo {
         this.ipAddress = IPAddress;
         this.portNumber = portNumber;
     }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 17;
+        hashCode = hashCode * 23 + ipAddress[0];
+        hashCode = hashCode * 23 + ipAddress[1];
+        hashCode = hashCode * 23 + ipAddress[2];
+        hashCode = hashCode * 23 + ipAddress[3];
+        hashCode = hashCode * 23 + portNumber;
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        ServerInfo theOther = (ServerInfo)other;
+        return theOther.ipAddress[0] == this.ipAddress[0] &&
+                theOther.ipAddress[1] == this.ipAddress[1] &&
+                theOther.ipAddress[2] == this.ipAddress[2] &&
+                theOther.ipAddress[3] == this.ipAddress[3] &&
+                theOther.portNumber == this.portNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + IPAddressString() + ", " + portNumber + ")";
+    }
+
+
 }

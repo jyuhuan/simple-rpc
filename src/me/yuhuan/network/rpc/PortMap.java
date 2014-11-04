@@ -36,6 +36,15 @@ public class PortMap {
         _mappings = new ConcurrentHashMap<ProcedureInfo, Tuple2<Integer, ArrayList<ServerInfo>>>();
     }
 
+
+    public ArrayList<ProcedureInfo> getAllProcedureInfos() {
+        ArrayList<ProcedureInfo> result = new ArrayList<ProcedureInfo>();
+        for (ProcedureInfo procedureInfo : _mappings.keySet()) {
+            result.add(procedureInfo);
+        }
+        return result;
+    }
+
     /**
      * Register a server that supports the given procedure.
      * @param procedureInfo The procedure to support.
@@ -82,6 +91,20 @@ public class PortMap {
     }
 
     /**
+     * Notice this method clones every item, to avoid the
+     * {@link java.util.ConcurrentModificationException ConcurrentModificationException}.
+     * @param procedureInfo
+     * @return
+     */
+    public ArrayList<ServerInfo> getServersByProcedure(ProcedureInfo procedureInfo) {
+        ArrayList<ServerInfo> copy = new ArrayList<ServerInfo>();
+        for (ServerInfo serverInfo : _mappings.get(procedureInfo).e2) {
+            copy.add(serverInfo);
+        }
+        return copy;
+    }
+
+    /**
      * Remove a procedure and the servers that support it.
      * @param procedureInfo The procedure to remove.
      */
@@ -89,4 +112,13 @@ public class PortMap {
         _mappings.remove(procedureInfo);
     }
 
+    public void removeServerFromProcedure(ServerInfo serverInfo, ProcedureInfo procedureInfo) {
+        if (_mappings.get(procedureInfo).e2.size() == 1) {
+            _mappings.remove(procedureInfo);
+        }
+        else {
+            _mappings.get(procedureInfo).e2.remove(serverInfo);
+            _mappings.get(procedureInfo).e1 = 0;
+        }
+    }
 }
