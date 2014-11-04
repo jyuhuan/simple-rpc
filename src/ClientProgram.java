@@ -33,8 +33,8 @@ public class ClientProgram {
         };
 
         Random random = new Random();
-        int rowSize = 1000;
-        int colSize = 1000;
+        int rowSize = 800;
+        int colSize = 800;
         double[][] matrixA = new double[rowSize][colSize];
         for (int r = 0; r < rowSize; r++) {
             for (int c = 0; c < colSize; c++) {
@@ -56,6 +56,7 @@ public class ClientProgram {
             Console.writeLine(e.getMessage());
         }
 
+        /*
         double[] array = new double[] { 7.1, 4.4 };
         try {
             double[] sortedArray = MathLib.sort(array);
@@ -77,7 +78,7 @@ public class ClientProgram {
         catch (ProcedureExecutionException e) {
             Console.writeLine(e.getMessage());
         }
-
+*/
 
 
         int aaaa = 0;

@@ -76,7 +76,9 @@ public class PortMap {
         int lastServerUsed = _mappings.get(procedureInfo).e1;
         ArrayList<ServerInfo> servers = _mappings.get(procedureInfo).e2;
         lastServerUsed = (lastServerUsed + 1) % servers.size();
-        return servers.get(lastServerUsed);
+        _mappings.get(procedureInfo).e1 = lastServerUsed;
+        ServerInfo result = servers.get(lastServerUsed);
+        return result;
     }
 
     /**

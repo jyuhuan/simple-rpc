@@ -22,10 +22,10 @@ import java.util.PriorityQueue;
 public class ReliableUdpTransporter {
     private static Integer _lastSeqNumber;
 
-    private static final int MAX_WAIT_TIME = 20000;
+    private static final int MAX_WAIT_TIME = 5000; //20000
     private static final int BURST_SIZE = 10;
     private static final int MAX_DATA_SIZE = 1000;
-    private static final int MAX_TRY_TIME = 10;
+    private static final int MAX_TRY_TIME = 3; //10
 
     private static int getNextSeqNumber() {
         if (_lastSeqNumber == null) {
