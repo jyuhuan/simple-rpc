@@ -12,7 +12,7 @@ import java.util.Arrays;
 /**
  * Created by Yuhuan Jiang on 10/26/14.
  */
-public class Implementations {
+public class MathLibImplementations {
     public static double[][] multiply(double[][] a, double[][] b) throws ProcedureExecutionException {
         int rowCountA = a.length;
         int colCountA = a[0].length;

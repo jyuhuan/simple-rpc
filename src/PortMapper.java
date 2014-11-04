@@ -4,6 +4,7 @@
  */
 
 
+import me.yuhuan.io.TextFile;
 import me.yuhuan.network.core.*;
 import me.yuhuan.network.rpc.PortMap;
 import me.yuhuan.utility.*;
@@ -50,7 +51,7 @@ public class PortMapper {
         Console.writeLine("I am running on " + myIpAddress + ", at port " + myPortNumber);
 
         // Write the IP and port number of this port mapper to a publicly known file location.
-        TextFile.write("port_mapper_info", new String[] { myIpAddress, String.valueOf(myPortNumber) });
+        TextFile.write("port_mapper_info", new String[]{myIpAddress, String.valueOf(myPortNumber)});
 
         // This try block listens to the socket, dispatches the worker threads
         // based on what the incoming request is.

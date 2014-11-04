@@ -50,7 +50,7 @@ public class ClientProgram {
         }
 
         try {
-            double[][] c = MathLib.multiply(a, b);
+            double[][] c = MathLib.multiply(matrixA, matrixB);
         }
         catch (ProcedureExecutionException e) {
             Console.writeLine(e.getMessage());

@@ -3,7 +3,7 @@
  * International License (http://creativecommons.org/licenses/by-nc-nd/4.0/).
  */
 
-package me.yuhuan.utility;
+package me.yuhuan.io;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -29,5 +29,14 @@ public class TextFile {
         }
         in.close();
         return lines.toArray(new String[lines.size()]);
+    }
+
+    public static boolean exists(String path) throws IOException {
+        File f = new File(path);
+        return (f.exists() && !f.isDirectory());
+    }
+
+    public static void createEmptyFile(String path) throws IOException {
+        write(path, new String[] {});
     }
 }

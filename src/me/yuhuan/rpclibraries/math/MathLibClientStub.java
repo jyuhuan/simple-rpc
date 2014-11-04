@@ -5,12 +5,12 @@
 
 package me.yuhuan.rpclibraries.math;
 
+import me.yuhuan.io.TextFile;
 import me.yuhuan.network.core.TcpMessenger;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.core.UdpMessenger;
 import me.yuhuan.network.exceptions.ProcedureNotSupportedException;
-import me.yuhuan.network.exceptions.ReliableUdpTransmissionFailedException;
 import me.yuhuan.network.rpc.PortMap;
 import me.yuhuan.network.rpc.RpcData;
 import me.yuhuan.network.rpc.types.*;
@@ -27,7 +27,7 @@ import java.net.SocketException;
 /**
  * Created by Yuhuan Jiang on 10/18/14.
  */
-public class ClientStub {
+public class MathLibClientStub {
 
     private static final int PART_SIZE = 100;
     private static PortMap _localCache;

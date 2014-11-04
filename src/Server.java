@@ -7,13 +7,14 @@
  * Created by Yuhuan Jiang on 10/16/14.
  */
 
+import me.yuhuan.io.TextFile;
 import me.yuhuan.network.core.TcpMessenger;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.core.UdpMessenger;
 import me.yuhuan.network.rpc.RpcData;
 import me.yuhuan.network.rpc.types.*;
-import me.yuhuan.rpclibraries.math.Implementations;
+import me.yuhuan.rpclibraries.math.MathLibImplementations;
 import me.yuhuan.utility.*;
 import me.yuhuan.utility.Console;
 
@@ -23,15 +24,39 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Server {
+    /**
+     * Records the IP address of the port mapper.
+     * This variable should be set at the beginning of the server runtime.
+     */
     static String portMapperIp;
+
+    /**
+     * Records the port number that the port mapper listens to.
+     */
     static int portMapperPort;
+
+    /**
+     * Controls the maximum size of each packet sent by this server.
+     */
     public static int PART_SIZE = 512;
 
-
+    /**
+     * Records the IP address of this server.
+     * This variable should be set at the beginning of the server runtime.
+     */
     public static String myIpAddress;
+
+    /**
+     * Records the port number that this server listens to.
+     */
     public static int myPortNumber;
 
+    /**
+     * The procedures supported by this server.
+     * This variable should be set at the beginning of the server runtime.
+     */
     public static HashSet<ProcedureInfo> supportedProcedures;
+
 
     public static void main(String[] args) throws IOException {
 
@@ -238,7 +263,7 @@ public class Server {
 
                 try {
                     // Perform multiplication
-                    RpcMatrix result = new RpcMatrix(Implementations.multiply(matrixA.toArray(), matrixB.toArray()));
+                    RpcMatrix result = new RpcMatrix(MathLibImplementations.multiply(matrixA.toArray(), matrixB.toArray()));
 
                     // Create success message
                     RpcInt successMsg = new RpcInt(Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS);
@@ -279,7 +304,7 @@ public class Server {
 
                 try {
                     // Perform sorting
-                    RpcArray result = new RpcArray(Implementations.sort(array.toArray()));
+                    RpcArray result = new RpcArray(MathLibImplementations.sort(array.toArray()));
 
                     // Create success message
                     RpcInt successMsg = new RpcInt(Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS);
@@ -320,7 +345,7 @@ public class Server {
 
                 try {
                     // Perform max
-                    RpcDouble result = new RpcDouble(Implementations.max(array.toArray()));
+                    RpcDouble result = new RpcDouble(MathLibImplementations.max(array.toArray()));
 
                     // Create success message
                     RpcInt successMsg = new RpcInt(Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS);
@@ -361,7 +386,7 @@ public class Server {
 
                 try {
                     // Perform max
-                    RpcDouble result = new RpcDouble(Implementations.min(array.toArray()));
+                    RpcDouble result = new RpcDouble(MathLibImplementations.min(array.toArray()));
 
                     // Create success message
                     RpcInt successMsg = new RpcInt(Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS);

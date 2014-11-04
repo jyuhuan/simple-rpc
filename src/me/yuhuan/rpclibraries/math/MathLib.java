@@ -5,8 +5,6 @@
 
 package me.yuhuan.rpclibraries.math;
 
-import me.yuhuan.network.exceptions.ProcedureExecutionException;
-
 import java.io.IOException;
 
 /**
@@ -15,20 +13,20 @@ import java.io.IOException;
 public class MathLib {
 
     public static double[][] multiply(double[][] a, double[][] b) throws IOException {
-        return ClientStub.multiply(a, b);
+        return MathLibClientStub.multiply(a, b);
     }
 
     public static double[] sort(double[] array) throws IOException {
 
-        return ClientStub.sort(array);
+        return MathLibClientStub.sort(array);
     }
 
     public static double max(double[] array) throws IOException {
-        return ClientStub.max(array);
+        return MathLibClientStub.max(array);
     }
 
     public static double min(double[] array) throws IOException {
-        return ClientStub.min(array);
+        return MathLibClientStub.min(array);
     }
 
 
