@@ -6,6 +6,7 @@
 
 import me.yuhuan.io.TextFile;
 import me.yuhuan.network.core.*;
+import me.yuhuan.network.exceptions.ProcedureLookupException;
 import me.yuhuan.network.exceptions.ProcedureNotSupportedException;
 import me.yuhuan.network.rpc.PortMap;
 import me.yuhuan.utility.*;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
  */
 public class PortMapper {
 
-    private static final int VALIDATION_INTERVAL = 1000;
+    private static final int VALIDATION_INTERVAL = 100000;
 
     // The port mapper table. See class PortMap for details.
     public static PortMap portMap;
@@ -174,11 +175,17 @@ public class PortMapper {
                 // Read a ProcedureInfo object from the client.
                 ProcedureInfo toFind = TcpMessenger.receiveProcedureInfo(dataInputStream);
 
-                // Query the port mapper table.
-                ServerInfo result = portMap.getServerByProcedure(toFind);
+                try {
+                    // Query the port mapper table.
+                    ServerInfo result = portMap.getServerByProcedure(toFind);
 
-                // Send the found ServerInfo back to client.
-                TcpMessenger.sendServerInfo(dataOutputStream, result);
+                    // Send the found ServerInfo back to client.
+                    TcpMessenger.sendServerInfo(dataOutputStream, result);
+                }
+                catch (ProcedureLookupException e) {
+                    ServerInfo result = new ServerInfo("-1.-1.-1.-1", -1);
+                    TcpMessenger.sendServerInfo(dataOutputStream, result);
+                }
             }
             catch (IOException e) {
                 Console.writeLine("IO error");
@@ -229,8 +236,8 @@ public class PortMapper {
                                 }
                             }
                             catch (IOException e) {
+                                Console.writeLine("Removing procedure " + procedureInfo + " from server " + serverInfo);
                                 portMap.removeServerFromProcedure(serverInfo, procedureInfo);
-                                Console.writeLine("Removed procedure " + procedureInfo + " from server " + serverInfo);
                             }
                         }
                     }

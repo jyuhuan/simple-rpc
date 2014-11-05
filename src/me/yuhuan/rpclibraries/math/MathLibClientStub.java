@@ -11,6 +11,7 @@ import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.core.UdpMessenger;
 import me.yuhuan.network.exceptions.ProcedureExecutionException;
+import me.yuhuan.network.exceptions.ProcedureLookupException;
 import me.yuhuan.network.exceptions.ProcedureNotSupportedException;
 import me.yuhuan.network.exceptions.ReliableUdpTransmissionFailedException;
 import me.yuhuan.network.rpc.PortMap;
@@ -42,13 +43,18 @@ public class MathLibClientStub {
         int numTrials = 0;
 
         while (!didSucceed && numTrials < MAX_TRY_TIME) {
-            Console.writeLine("Trying " + numTrials++);
+            //Console.writeLine("Trying " + numTrials++);
             try {
                 /**
                  * Go to the port mapper, and obtain the server information.
                  */
                 ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("multiply");
                 ServerInfo targetServer = lookForServer(procedureToExecute);
+
+                if (targetServer.equals(new ServerInfo("-1.-1.-1.-1", -1))) {
+                    throw new ProcedureLookupException("ERROR: No server is running");
+                }
+
                 InetAddress serverIp = targetServer.inetAddress();
                 int port = targetServer.portNumber;
 

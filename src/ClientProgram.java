@@ -3,11 +3,12 @@
  * International License (http://creativecommons.org/licenses/by-nc-nd/4.0/).
  */
 
-import me.yuhuan.network.exceptions.ProcedureExecutionException;
 import me.yuhuan.rpclibraries.math.MathLib;
+import me.yuhuan.rpclibraries.math.MathLibImplementations;
 import me.yuhuan.utility.Console;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -33,8 +34,11 @@ public class ClientProgram {
         };
 
         Random random = new Random();
-        int rowSize = 800;
-        int colSize = 800;
+        int rowSize = 500;
+        //int rowSize = Integer.parseInt(args[0]);
+        int colSize = 500;
+        //int rowSize = Integer.parseInt(args[0]);
+
         double[][] matrixA = new double[rowSize][colSize];
         for (int r = 0; r < rowSize; r++) {
             for (int c = 0; c < colSize; c++) {
@@ -49,11 +53,41 @@ public class ClientProgram {
             }
         }
 
-        try {
-            double[][] c = MathLib.multiply(matrixA, matrixB);
+
+
+        ArrayList<String> recorder = new ArrayList<String>();
+        int currentRunId = 0;
+        for (int i = 0; i < 100; i++) {
+            Console.writeLine("Running experiment " + currentRunId++ + " of the multiplication of " + rowSize + "x" + colSize);
+            try {
+                long startTime = System.nanoTime();
+                double[][] c = MathLib.multiply(matrixA, matrixB);
+                //double[][] d = MathLibImplementations.multiply(matrixA, matrixB);
+                long estimatedTime = System.nanoTime() - startTime;
+                recorder.add("" + estimatedTime);
+            } catch (Exception e) {
+                Console.writeLine("ERROR: " + e.getMessage());
+            }
         }
-        catch (ProcedureExecutionException e) {
-            Console.writeLine(e.getMessage());
+
+
+        /*ArrayList<String> recorder = new ArrayList<String>();
+        int currentRunId = 0;
+        for (int i = 0; i < 2; i++) {
+            Console.writeLine("Running experiment " + currentRunId++ + " of the multiplication of " + rowSize + "x" + colSize);
+            try {
+                long startTime = System.nanoTime();
+                double[][] c = MathLibImplementations.multiply(matrixA, matrixB);
+                long estimatedTime = System.nanoTime() - startTime;
+                recorder.add("" + estimatedTime);
+            } catch (Exception e) {
+                Console.writeLine("ERROR: " + e.getMessage());
+            }
+        }*/
+
+        // print out recorder
+        for (String s : recorder) {
+            Console.writeLine(s);
         }
 
         /*

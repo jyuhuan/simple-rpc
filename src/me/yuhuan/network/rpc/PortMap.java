@@ -8,6 +8,7 @@ package me.yuhuan.network.rpc;
 import me.yuhuan.collections.Tuple2;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
+import me.yuhuan.network.exceptions.ProcedureLookupException;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,7 +82,10 @@ public class PortMap {
      * @param procedureInfo The procedure to look up.
      * @return A server that supports the procedure.
      */
-    public ServerInfo getServerByProcedure(ProcedureInfo procedureInfo) {
+    public ServerInfo getServerByProcedure(ProcedureInfo procedureInfo) throws ProcedureLookupException {
+
+        if (_mappings.size() == 0) throw new ProcedureLookupException("No server is running. ");
+
         int lastServerUsed = _mappings.get(procedureInfo).e1;
         ArrayList<ServerInfo> servers = _mappings.get(procedureInfo).e2;
         lastServerUsed = (lastServerUsed + 1) % servers.size();

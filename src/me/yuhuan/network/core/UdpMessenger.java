@@ -22,8 +22,6 @@ import java.net.InetAddress;
  */
 public class UdpMessenger {
 
-    private static final int UDP_PACKET_MAX_SIZE = 1000;
-
     /**
      * Sends an array of {@link me.yuhuan.network.rpc.RpcData RpcData} objects through UDP.
      * @param socket Sender's socket.

@@ -38,7 +38,7 @@ public class Server {
     /**
      * Controls the maximum size of each packet sent by this server.
      */
-    public static int PART_SIZE = 512;
+    public static int PART_SIZE = 100;
 
     /**
      * Records the IP address of this server.
@@ -103,7 +103,7 @@ public class Server {
                 //     (2) execute a procedure.
                 int tag = TcpMessenger.receiveTag(dataInputStream);
                 if (tag == Tags.REQUEST_PROCEDURE_AVAILABILITY_CHECK) {
-                    Console.writeLine("Client " + clientSocket + " wants to perform a procedure availability check. ");
+                    Console.writeLine(clientSocket.getInetAddress() + " at port " + clientSocket.getPort() + " wants to perform a procedure availability check. ");
                     (new ProcedureAvailabilityCheckWorker(clientSocket)).start();
                 }
                 else if (tag == Tags.REQUEST_PROCEDURE_EXECUTION) {
@@ -212,15 +212,13 @@ public class Server {
                 else TcpMessenger.sendTag(dataOutputStream, Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_NO);
             }
             catch (IOException e) {
-                Console.writeLine("IO error");
+                Console.writeLine("IO error in procedure availability check. ");
             }
             finally {
                 try {
                     _clientSocket.close();
-                    Console.writeLine("Thread ends. Connection closes.");
                 }
                 catch (IOException e) {
-                    Console.writeLine("Client socket failed to close. ");
                 }
             }
         }

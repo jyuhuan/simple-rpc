@@ -22,10 +22,13 @@ import java.util.PriorityQueue;
 public class ReliableUdpTransporter {
     private static Integer _lastSeqNumber;
 
-    private static final int MAX_WAIT_TIME = 5000; //20000
+    private static final int MAX_WAIT_TIME = 20000; //20000
     private static final int BURST_SIZE = 10;
     private static final int MAX_DATA_SIZE = 1000;
     private static final int MAX_TRY_TIME = 3; //10
+
+    private static final boolean SHOULD_LOG = false;
+
 
     private static int getNextSeqNumber() {
         if (_lastSeqNumber == null) {
@@ -126,7 +129,7 @@ public class ReliableUdpTransporter {
     }
 
     public static int trySendingBurst(DatagramSocket socket, ReliableUdpData[] burst, InetAddress receiverIp, int receiverPort) throws IOException, ReliableUdpTransmissionFailedException {
-        //System.out.println("Sender says: Try sending a burst of data beginning with seqNumber = " + burst[0].seqNumber);
+        if (SHOULD_LOG) System.out.println("Sender says: Try sending a burst of data beginning with seqNumber = " + burst[0].seqNumber);
         for (ReliableUdpData udpData : burst) {
             byte[] bytesToSend = udpData.toBytes();
             DatagramPacket packetToSend = new DatagramPacket(bytesToSend, bytesToSend.length, receiverIp, receiverPort);
@@ -141,7 +144,7 @@ public class ReliableUdpTransporter {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytesForReceiving);
             DataInputStream inputStream = new DataInputStream(byteArrayInputStream);
             int ack = inputStream.readInt();
-            //System.out.println("Sender says: Received ACK " + ack);
+            if (SHOULD_LOG) System.out.println("Sender says: Received ACK " + ack);
             return ack;
         }
         catch (SocketTimeoutException e) {
@@ -153,7 +156,7 @@ public class ReliableUdpTransporter {
         byte[] bytesToSend = udpData.toBytes();
         DatagramPacket packetToSend = new DatagramPacket(bytesToSend, bytesToSend.length, receiverIp, receiverPort);
         socket.send(packetToSend);
-        //System.out.println("Sender says: Try sending " + udpData.seqNumber);
+        if (SHOULD_LOG) System.out.println("Sender says: Try sending " + udpData.seqNumber);
         socket.setSoTimeout(MAX_WAIT_TIME);
         try {
             byte[] bytesForReceiving = new byte[4];
@@ -182,7 +185,7 @@ public class ReliableUdpTransporter {
             DatagramPacket firstPacket = new DatagramPacket(bytesForFirstPacket, bytesForFirstPacket.length);
             socket.setSoTimeout(MAX_WAIT_TIME);
             try {
-                System.out.println("Sender says: try receiving handshake data.");
+                if (SHOULD_LOG) System.out.println("Sender says: try receiving handshake data.");
                 socket.receive(firstPacket);
                 ReliableUdpData handShakeData = new ReliableUdpData(bytesForFirstPacket);
                 received.add(handShakeData);
@@ -208,7 +211,7 @@ public class ReliableUdpTransporter {
             }
         }
 
-        System.out.println("Receiver says: received handshake data. Total packet number = " + totalPacketCount);
+        if (SHOULD_LOG) System.out.println("Receiver says: received handshake data. Total packet number = " + totalPacketCount);
 
 
         // Receive the rest.
