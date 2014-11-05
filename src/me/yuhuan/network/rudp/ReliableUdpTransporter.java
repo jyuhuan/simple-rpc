@@ -7,6 +7,7 @@ package me.yuhuan.network.rudp;
 
 import me.yuhuan.network.exceptions.ReliableUdpTransmissionFailedException;
 import me.yuhuan.network.rpc.RpcData;
+import me.yuhuan.utility.Console;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -27,7 +28,7 @@ public class ReliableUdpTransporter {
     private static final int MAX_DATA_SIZE = 1000;
     private static final int MAX_TRY_TIME = 3; //10
 
-    private static final boolean SHOULD_LOG = false;
+    private static final boolean SHOULD_LOG = true;
 
 
     private static int getNextSeqNumber() {
@@ -110,6 +111,11 @@ public class ReliableUdpTransporter {
         ReliableUdpData[] arrayOfDataToSend = rpcDataArrayToUdpDataArray(rpcDataArray);
         boolean finish = false;
         int curBeginIdx = 0;
+
+        // The following two are for counting repeats
+        int numTimesSendingSamePacket = 0;
+        int lastSeqNumber = arrayOfDataToSend[0].seqNumber + 1;
+
         while (!finish) {
             ReliableUdpData[] burst;
             int totalSize = arrayOfDataToSend.length;
@@ -125,6 +131,18 @@ public class ReliableUdpTransporter {
             int ack = trySendingBurst(socket, burst, receiverIp, receiverPort);
             curBeginIdx = ack - arrayOfDataToSend[0].seqNumber;
             if (ack == arrayOfDataToSend[arrayOfDataToSend.length - 1].seqNumber + 1) finish = true;
+
+            if (ack == lastSeqNumber) {
+                numTimesSendingSamePacket++;
+                Console.writeLine("Repeat detected.");
+            }
+
+            lastSeqNumber = ack;
+
+            if (numTimesSendingSamePacket >= MAX_TRY_TIME) {
+                Console.writeLine("Max try time reached.");
+                throw new ReliableUdpTransmissionFailedException("Give up. ");
+            }
         }
     }
 

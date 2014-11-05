@@ -15,6 +15,10 @@ public class ServerInfo {
     public int[] ipAddress;
     public int portNumber;
 
+    public static ServerInfo createFakeServer() {
+        return new ServerInfo("-1.-1.-1.-1", -1);
+    }
+
     public String IPAddressString() {
         return ipAddress[0] + "." + ipAddress[1] + "." + ipAddress[2] + "." + ipAddress[3];
     }

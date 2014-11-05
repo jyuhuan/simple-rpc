@@ -16,8 +16,8 @@ import java.util.Random;
  */
 public class ClientProgram {
     public static void main(String[] args) throws IOException {
-        // ...
 
+/*
         double[][] a = new double[][] {
                 new double[] { 2.0, 4.1, 6.3, 0.4, 1.3 },
                 new double[] { 1.2, 3.4, 5.6, 7.8, 9.9 },
@@ -32,11 +32,12 @@ public class ClientProgram {
                 new double[] { 2.1, 3.2, 4.3 },
                 new double[] { 2.1, 3.2, 4.3 }
         };
+*/
 
         Random random = new Random();
-        int rowSize = 500;
+        int rowSize = 1000;
         //int rowSize = Integer.parseInt(args[0]);
-        int colSize = 500;
+        int colSize = 1000;
         //int rowSize = Integer.parseInt(args[0]);
 
         double[][] matrixA = new double[rowSize][colSize];
@@ -53,9 +54,15 @@ public class ClientProgram {
             }
         }
 
+        try {
+            double[][] multiplyResult = MathLib.multiply(matrixA, matrixB);
+        }
+        catch (Exception e) {
+            Console.writeLine(e.getMessage());
+        }
 
 
-        ArrayList<String> recorder = new ArrayList<String>();
+        /*ArrayList<String> recorder = new ArrayList<String>();
         int currentRunId = 0;
         for (int i = 0; i < 100; i++) {
             Console.writeLine("Running experiment " + currentRunId++ + " of the multiplication of " + rowSize + "x" + colSize);
@@ -70,25 +77,10 @@ public class ClientProgram {
             }
         }
 
-
-        /*ArrayList<String> recorder = new ArrayList<String>();
-        int currentRunId = 0;
-        for (int i = 0; i < 2; i++) {
-            Console.writeLine("Running experiment " + currentRunId++ + " of the multiplication of " + rowSize + "x" + colSize);
-            try {
-                long startTime = System.nanoTime();
-                double[][] c = MathLibImplementations.multiply(matrixA, matrixB);
-                long estimatedTime = System.nanoTime() - startTime;
-                recorder.add("" + estimatedTime);
-            } catch (Exception e) {
-                Console.writeLine("ERROR: " + e.getMessage());
-            }
-        }*/
-
         // print out recorder
         for (String s : recorder) {
             Console.writeLine(s);
-        }
+        }*/
 
         /*
         double[] array = new double[] { 7.1, 4.4 };

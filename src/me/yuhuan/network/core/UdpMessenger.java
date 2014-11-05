@@ -30,7 +30,7 @@ public class UdpMessenger {
      * @param receiverPort Receiver's port that the receiver's UDP socket is bound to.
      * @throws IOException
      */
-    public static void sendRpcDataArray(DatagramSocket socket, RpcData[] rpcDataArray, InetAddress receiverIp, int receiverPort) throws IOException, ReliableUdpTransmissionFailedException {
+    public static void sendRpcDataArray(DatagramSocket socket, RpcData[] rpcDataArray, InetAddress receiverIp, int receiverPort) throws IOException {
         ReliableUdpTransporter.send(socket, rpcDataArray, receiverIp, receiverPort);
     }
 
@@ -41,7 +41,7 @@ public class UdpMessenger {
      * @return The array of RpcData objects received.
      * @throws IOException
      */
-    public static RpcData[] receiveRpcDataArray(DatagramSocket receiverSocket) throws IOException, ReliableUdpTransmissionFailedException {
+    public static RpcData[] receiveRpcDataArray(DatagramSocket receiverSocket) throws IOException {
         return ReliableUdpTransporter.receive(receiverSocket);
     }
 

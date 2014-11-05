@@ -40,36 +40,30 @@ public class MathLibClientStub {
         boolean didSucceed = false;
         boolean notFound = false;
         ProcedureNotSupportedException procedureNotSupportedException = new ProcedureNotSupportedException("");
-        int numTrials = 0;
 
+        int numTrials = 0;
         while (!didSucceed && numTrials < MAX_TRY_TIME) {
-            //Console.writeLine("Trying " + numTrials++);
+            Console.writeLine("Performing multiplication. This is trial " + numTrials++);
             try {
-                /**
-                 * Go to the port mapper, and obtain the server information.
-                 */
+                // Go to the port mapper, and obtain the server information.
                 ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("multiply");
                 ServerInfo targetServer = lookForServer(procedureToExecute);
 
-                if (targetServer.equals(new ServerInfo("-1.-1.-1.-1", -1))) {
-                    throw new ProcedureLookupException("ERROR: No server is running");
+                if (targetServer.equals(ServerInfo.createFakeServer())) {
+                    throw new ProcedureLookupException("No server is running!! ");
                 }
+
+                Console.writeLine("Checking procedure availability on server... " + targetServer);
 
                 InetAddress serverIp = targetServer.inetAddress();
                 int port = targetServer.portNumber;
 
-                Console.writeLine("Connecting to server on " + targetServer.IPAddressString() + " at " + targetServer.portNumber);
-
-                /**
-                 * Check if the server supports the procedure.
-                 */
+                // Check if the server supports the procedure.
                 if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
                     throw new ProcedureNotSupportedException("The procedure multiply is not supported. ");
                 }
 
-                /**
-                 * Tell the server which procedure to execute.
-                 */
+                // Tell the server which procedure to execute.
                 Socket socketToServer = new Socket(serverIp, port);
                 DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
                 DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
@@ -78,61 +72,57 @@ public class MathLibClientStub {
                 TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
 
 
-                /**
-                 * Tell the server the transaction ID
-                 */
+                // Tell the server the transaction ID
                 int transactionId = UidGenerator.next();
                 TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
 
-                /**
-                 * Tell the server where to reply the result
-                 */
+                // Tell the server where to reply the result
                 DatagramSocket socket = new DatagramSocket();
                 TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
 
 
-                /**
-                 * Get the UDP port number of the server
-                 */
+                // Get the UDP port number of the server
                 int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
 
 
-                /**
-                 * ALERT!!! FROM THIS POINT ON, THE TCP CONNECTION IS GONE!!! GONE FOR GOOD!!!!!
-                 * DO NOT ATTEMPT TO CALL Messenger.receiveXXX(dataInputStream) or Messenger.sendXXX(dataOutputStream)
-                 */
+                // !!!!! ALERT !!!!!
+                // FROM THIS POINT ON, THE TCP CONNECTION IS GONE!!! GONE FOR GOOD!!!!!
+                // DO NOT ATTEMPT TO CALL Messenger.receiveXXX(dataInputStream) or Messenger.sendXXX(dataOutputStream)
 
-                /**
-                 * Send the two matrices to the server.
-                 */
+                // Send the two matrices to the server.
+                Console.writeLine("Sending parameters to server... ");
                 RpcMatrix rpcMatrixA = new RpcMatrix(a);
                 RpcMatrix rpcMatrixB = new RpcMatrix(b);
 
                 UdpMessenger.sendRpcDataArray(socket, rpcMatrixA.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
                 UdpMessenger.sendRpcDataArray(socket, rpcMatrixB.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
 
+                Console.writeLine("Waiting for result to be returned from server... ");
                 RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
-
                 RpcInt tag = new RpcInt(response[0]);
                 if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
+                    Console.writeLine("The server successfully returned the result. ");
                     RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
                     RpcMatrix result = new RpcMatrix(resultData);
                     didSucceed = true;
                     return result.toArray();
                 }
                 else {
+                    Console.writeLine("The server encountered error in the execution. ");
                     RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
                     RpcError error = new RpcError(errorData[0]);
                     didSucceed = true;
                     throw error.toException();
                 }
-
             }
             catch (ReliableUdpTransmissionFailedException e) {
                 didSucceed = false;
+                Console.writeLine(e.getMessage());
+                Console.writeLine("Parameter sending was unsuccessful. ");
             }
             catch (ProcedureExecutionException e) {
                 didSucceed = false;
+                Console.writeLine(e.getMessage());
             }
             catch (ProcedureNotSupportedException e) {
                 didSucceed = false;
@@ -141,7 +131,7 @@ public class MathLibClientStub {
             }
         }
         if (notFound) throw procedureNotSupportedException;
-        else throw new ProcedureExecutionException("The server is assumed to have died. ");
+        else throw new ProcedureExecutionException("final line in mathlib client stub. ");
     }
 
     public static double[] sort(double[] array) throws IOException {
@@ -359,15 +349,14 @@ public class MathLibClientStub {
             int result = TcpMessenger.receiveTag(inputStream);
 
             if (result == Tags.RESPOND_PROCEDURE_AVAILABILITY_CHECK_YES) {
-                Console.writeLine("procedure supported");
-
+                Console.writeLine("The server says: procedure supported");
                 return true;
             }
             else {
                 if (_localCache.containsProcedure(procedureInfo)) {
                     _localCache.removeProcedure(procedureInfo);
                 }
-                Console.writeLine("procedure not supported");
+                Console.writeLine("The server says: procedure not supported");
                 return false;
             }
         }
@@ -407,7 +396,9 @@ public class MathLibClientStub {
             TcpMessenger.sendProcedureInfo(dataOutputStream, procedureInfo);
 
             ServerInfo result = TcpMessenger.receiveServerInfo(dataInputStream);
-            _localCache.register(procedureInfo, result);
+
+            // Record the server information in local cache.
+            if (!result.equals(ServerInfo.createFakeServer())) _localCache.register(procedureInfo, result);
             return result;
         }
         catch (SocketException e) {

@@ -58,6 +58,12 @@ public class PortMapper {
         // Write the IP and port number of this port mapper to a publicly known file location.
         TextFile.write("port_mapper_info", new String[]{myIpAddress, String.valueOf(myPortNumber)});
 
+
+        // Start the validation worker
+        Console.writeLine("asdf");
+        (new TableEntryValidationWorker(myIpAddress, myPortNumber)).start();
+
+
         // This try block listens to the socket, dispatches the worker threads
         // based on what the incoming request is.
         try {
@@ -80,9 +86,6 @@ public class PortMapper {
                     Console.writeLine("Client " + clientSocket + " wants to look for a procedure. ");
                     (new PortMapperLookupWorker(clientSocket)).start();
                 }
-
-                // Start the validation worker
-                (new TableEntryValidationWorker(myIpAddress, myPortNumber)).start();
             }
         }
         finally {
@@ -183,12 +186,16 @@ public class PortMapper {
                     TcpMessenger.sendServerInfo(dataOutputStream, result);
                 }
                 catch (ProcedureLookupException e) {
-                    ServerInfo result = new ServerInfo("-1.-1.-1.-1", -1);
+                    ServerInfo result = ServerInfo.createFakeServer();
+                    TcpMessenger.sendServerInfo(dataOutputStream, result);
+                }
+                catch (NullPointerException e) {
+                    ServerInfo result = ServerInfo.createFakeServer();
                     TcpMessenger.sendServerInfo(dataOutputStream, result);
                 }
             }
             catch (IOException e) {
-                Console.writeLine("IO error");
+                Console.writeLine("PortMapperLookupWorker says: IO error");
             }
             finally {
                 try {
@@ -215,9 +222,13 @@ public class PortMapper {
         public void run() {
             while (true) {
                 try {
+                    Console.writeLine("Check servers. ");
+
                     for (ProcedureInfo procedureInfo : portMap.getAllProcedureInfos()) {
                         for (ServerInfo serverInfo : portMap.getServersByProcedure(procedureInfo)) {
                             try {
+
+
                                 InetAddress serverIp = serverInfo.inetAddress();
                                 int serverTcpPort = serverInfo.portNumber;
 

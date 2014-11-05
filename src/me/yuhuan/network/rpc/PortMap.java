@@ -9,6 +9,7 @@ import me.yuhuan.collections.Tuple2;
 import me.yuhuan.network.core.ProcedureInfo;
 import me.yuhuan.network.core.ServerInfo;
 import me.yuhuan.network.exceptions.ProcedureLookupException;
+import me.yuhuan.utility.Console;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +32,7 @@ public class PortMap {
      * This means that each procedure can be supported by multiple servers.
      * This helps balance workload.
      */
-    ConcurrentHashMap<ProcedureInfo, Tuple2<Integer, ArrayList<ServerInfo>>> _mappings;
+    volatile ConcurrentHashMap<ProcedureInfo, Tuple2<Integer, ArrayList<ServerInfo>>> _mappings;
 
     public PortMap() {
         _mappings = new ConcurrentHashMap<ProcedureInfo, Tuple2<Integer, ArrayList<ServerInfo>>>();
@@ -82,16 +83,23 @@ public class PortMap {
      * @param procedureInfo The procedure to look up.
      * @return A server that supports the procedure.
      */
-    public ServerInfo getServerByProcedure(ProcedureInfo procedureInfo) throws ProcedureLookupException {
-
-        if (_mappings.size() == 0) throw new ProcedureLookupException("No server is running. ");
-
-        int lastServerUsed = _mappings.get(procedureInfo).e1;
-        ArrayList<ServerInfo> servers = _mappings.get(procedureInfo).e2;
-        lastServerUsed = (lastServerUsed + 1) % servers.size();
-        _mappings.get(procedureInfo).e1 = lastServerUsed;
-        ServerInfo result = servers.get(lastServerUsed);
-        return result;
+    public synchronized ServerInfo getServerByProcedure(ProcedureInfo procedureInfo) throws ProcedureLookupException {
+        try {
+            if (_mappings.isEmpty() || _mappings.size() == 0) {
+                throw new ProcedureLookupException("No server is running. ");
+            }
+            else {
+                int lastServerUsed = _mappings.get(procedureInfo).e1;
+                ArrayList<ServerInfo> servers = _mappings.get(procedureInfo).e2;
+                lastServerUsed = (lastServerUsed + 1) % servers.size();
+                _mappings.get(procedureInfo).e1 = lastServerUsed;
+                ServerInfo result = servers.get(lastServerUsed);
+                return result;
+            }
+        }
+        catch (NullPointerException e) {
+            throw new ProcedureLookupException("No server is running. ");
+        }
     }
 
     /**
@@ -117,12 +125,13 @@ public class PortMap {
     }
 
     public void removeServerFromProcedure(ServerInfo serverInfo, ProcedureInfo procedureInfo) {
-        if (_mappings.get(procedureInfo).e2.size() == 1) {
-            _mappings.remove(procedureInfo);
-        }
-        else {
-            _mappings.get(procedureInfo).e2.remove(serverInfo);
-            _mappings.get(procedureInfo).e1 = 0;
+        if (_mappings.size() > 0) {
+            if (_mappings.get(procedureInfo).e2.size() == 1) {
+                _mappings.remove(procedureInfo);
+            } else {
+                _mappings.get(procedureInfo).e2.remove(serverInfo);
+                _mappings.get(procedureInfo).e1 = 0;
+            }
         }
     }
 }
