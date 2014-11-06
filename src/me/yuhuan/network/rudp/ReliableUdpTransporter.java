@@ -28,7 +28,7 @@ public class ReliableUdpTransporter {
     private static final int MAX_DATA_SIZE = 1000;
     private static final int MAX_TRY_TIME = 3; //10
 
-    private static final boolean SHOULD_LOG = true;
+    private static final boolean SHOULD_LOG = false;
 
 
     private static int getNextSeqNumber() {
