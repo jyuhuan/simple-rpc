@@ -135,206 +135,292 @@ public class MathLibClientStub {
     }
 
     public static double[] sort(double[] array) throws IOException {
-        /**
-         * Go to the port mapper, and obtain the server information.
-         */
-        ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("sort");
-        ServerInfo targetServer = lookForServer(procedureToExecute);
-        InetAddress serverIp = targetServer.inetAddress();
-        int port = targetServer.portNumber;
 
-        /**
-         * Check if the server supports the procedure.
-         */
-        if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            throw new ProcedureNotSupportedException("The procedure sort is not supported. ");
+        boolean didSucceed = false;
+        boolean notFound = false;
+        ProcedureNotSupportedException procedureNotSupportedException = new ProcedureNotSupportedException("");
+
+        int numTrials = 0;
+        while (!didSucceed && numTrials < MAX_TRY_TIME) {
+            Console.writeLine("Performing sorting. This is trial " + numTrials++);
+            try {
+                // Go to the port mapper, and obtain the server information.
+                ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("sort");
+                ServerInfo targetServer = lookForServer(procedureToExecute);
+
+                if (targetServer.equals(ServerInfo.createFakeServer())) {
+                    throw new ProcedureLookupException("No server is running!! ");
+                }
+
+                Console.writeLine("Checking procedure availability on server... " + targetServer);
+
+                InetAddress serverIp = targetServer.inetAddress();
+                int port = targetServer.portNumber;
+
+                // Check if the server supports the procedure.
+                if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
+                    throw new ProcedureNotSupportedException("The procedure multiply is not supported. ");
+                }
+
+                // Tell the server which procedure to execute.
+                Socket socketToServer = new Socket(serverIp, port);
+                DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
+                DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
+
+                TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+                TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+
+
+                // Tell the server the transaction ID
+                int transactionId = UidGenerator.next();
+                TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
+
+                // Tell the server where to reply the result
+                DatagramSocket socket = new DatagramSocket();
+                TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+
+
+                // Get the UDP port number of the server
+                int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
+
+
+                // !!!!! ALERT !!!!!
+                // FROM THIS POINT ON, THE TCP CONNECTION IS GONE!!! GONE FOR GOOD!!!!!
+                // DO NOT ATTEMPT TO CALL Messenger.receiveXXX(dataInputStream) or Messenger.sendXXX(dataOutputStream)
+
+                // Send the two matrices to the server.
+                Console.writeLine("Sending parameters to server... ");
+                RpcArray rpcArray = new RpcArray(array);
+
+                UdpMessenger.sendRpcDataArray(socket, rpcArray.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
+
+                Console.writeLine("Waiting for result to be returned from server... ");
+                RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
+                RpcInt tag = new RpcInt(response[0]);
+                if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
+                    Console.writeLine("The server successfully returned the result. ");
+                    RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
+                    RpcArray result = new RpcArray(resultData);
+                    didSucceed = true;
+                    return result.toArray();
+                }
+                else {
+                    Console.writeLine("The server encountered error in the execution. ");
+                    RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
+                    RpcError error = new RpcError(errorData[0]);
+                    didSucceed = true;
+                    throw error.toException();
+                }
+            }
+            catch (ReliableUdpTransmissionFailedException e) {
+                didSucceed = false;
+                Console.writeLine(e.getMessage());
+                Console.writeLine("Parameter sending was unsuccessful. ");
+            }
+            catch (ProcedureExecutionException e) {
+                didSucceed = false;
+                Console.writeLine(e.getMessage());
+            }
+            catch (ProcedureNotSupportedException e) {
+                didSucceed = false;
+                notFound = true;
+                procedureNotSupportedException = e;
+            }
         }
-
-        /**
-         * Tell the server which procedure to execute.
-         */
-        Socket socketToServer = new Socket(serverIp, port);
-        DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
-        DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
-
-        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
-
-
-        /**
-         * Tell the server the transaction ID
-         */
-        int transactionId = UidGenerator.next();
-        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
-
-        /**
-         * Tell the server where to reply the result
-         */
-        DatagramSocket socket = new DatagramSocket();
-        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
-
-
-        /**
-         * Get the UDP port number of the server
-         */
-        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
-
-        /**
-         * Send the two matrices to the server.
-         */
-        RpcArray rpcArray = new RpcArray(array);
-
-        UdpMessenger.sendRpcDataArray(socket, rpcArray.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
-
-        RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
-
-        RpcInt tag = new RpcInt(response[0]);
-        if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
-            RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
-            RpcArray result = new RpcArray(resultData);
-            return result.toArray();
-        }
-        else {
-            RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
-            RpcError error = new RpcError(errorData[0]);
-            throw error.toException();
-        }
-
+        if (notFound) throw procedureNotSupportedException;
+        else throw new ProcedureExecutionException("final line in mathlib client stub. ");
     }
 
     public static double max(double[] array) throws IOException {
-        /**
-         * Go to the port mapper, and obtain the server information.
-         */
-        ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("max");
-        ServerInfo targetServer = lookForServer(procedureToExecute);
-        InetAddress serverIp = targetServer.inetAddress();
-        int port = targetServer.portNumber;
+        boolean didSucceed = false;
+        boolean notFound = false;
+        ProcedureNotSupportedException procedureNotSupportedException = new ProcedureNotSupportedException("");
 
-        /**
-         * Check if the server supports the procedure.
-         */
-        if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            throw new ProcedureNotSupportedException("The procedure max is not supported. ");
+        int numTrials = 0;
+        while (!didSucceed && numTrials < MAX_TRY_TIME) {
+            Console.writeLine("Performing max. This is trial " + numTrials++);
+            try {
+                // Go to the port mapper, and obtain the server information.
+                ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("max");
+                ServerInfo targetServer = lookForServer(procedureToExecute);
+
+                if (targetServer.equals(ServerInfo.createFakeServer())) {
+                    throw new ProcedureLookupException("No server is running!! ");
+                }
+
+                Console.writeLine("Checking procedure availability on server... " + targetServer);
+
+                InetAddress serverIp = targetServer.inetAddress();
+                int port = targetServer.portNumber;
+
+                // Check if the server supports the procedure.
+                if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
+                    throw new ProcedureNotSupportedException("The procedure multiply is not supported. ");
+                }
+
+                // Tell the server which procedure to execute.
+                Socket socketToServer = new Socket(serverIp, port);
+                DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
+                DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
+
+                TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+                TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+
+
+                // Tell the server the transaction ID
+                int transactionId = UidGenerator.next();
+                TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
+
+                // Tell the server where to reply the result
+                DatagramSocket socket = new DatagramSocket();
+                TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+
+
+                // Get the UDP port number of the server
+                int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
+
+
+                // !!!!! ALERT !!!!!
+                // FROM THIS POINT ON, THE TCP CONNECTION IS GONE!!! GONE FOR GOOD!!!!!
+                // DO NOT ATTEMPT TO CALL Messenger.receiveXXX(dataInputStream) or Messenger.sendXXX(dataOutputStream)
+
+                // Send the two matrices to the server.
+                Console.writeLine("Sending parameters to server... ");
+                RpcArray rpcArray = new RpcArray(array);
+
+                UdpMessenger.sendRpcDataArray(socket, rpcArray.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
+
+                Console.writeLine("Waiting for result to be returned from server... ");
+                RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
+                RpcInt tag = new RpcInt(response[0]);
+                if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
+                    Console.writeLine("The server successfully returned the result. ");
+                    RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
+                    RpcDouble result = new RpcDouble(resultData[0]);
+                    didSucceed = true;
+                    return result.toDouble();
+                }
+                else {
+                    Console.writeLine("The server encountered error in the execution. ");
+                    RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
+                    RpcError error = new RpcError(errorData[0]);
+                    didSucceed = true;
+                    throw error.toException();
+                }
+            }
+            catch (ReliableUdpTransmissionFailedException e) {
+                didSucceed = false;
+                Console.writeLine(e.getMessage());
+                Console.writeLine("Parameter sending was unsuccessful. ");
+            }
+            catch (ProcedureExecutionException e) {
+                didSucceed = false;
+                Console.writeLine(e.getMessage());
+            }
+            catch (ProcedureNotSupportedException e) {
+                didSucceed = false;
+                notFound = true;
+                procedureNotSupportedException = e;
+            }
         }
-
-        /**
-         * Tell the server which procedure to execute.
-         */
-        Socket socketToServer = new Socket(serverIp, port);
-        DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
-        DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
-
-        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
-
-
-        /**
-         * Tell the server the transaction ID
-         */
-        int transactionId = UidGenerator.next();
-        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
-
-        /**
-         * Tell the server where to reply the result
-         */
-        DatagramSocket socket = new DatagramSocket();
-        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
-
-
-        /**
-         * Get the UDP port number of the server
-         */
-        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
-
-        /**
-         * Send the parameter to the server.
-         */
-        RpcArray rpcArray = new RpcArray(array);
-
-        UdpMessenger.sendRpcDataArray(socket, rpcArray.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
-
-        RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
-
-        RpcInt tag = new RpcInt(response[0]);
-        if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
-            RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
-            RpcDouble result = new RpcDouble(resultData[0]);
-            return result.toDouble();
-        }
-        else {
-            RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
-            RpcError error = new RpcError(errorData[0]);
-            throw error.toException();
-        }
+        if (notFound) throw procedureNotSupportedException;
+        else throw new ProcedureExecutionException("final line in mathlib client stub. ");
     }
 
     public static double min(double[] array) throws IOException {
-        /**
-         * Go to the port mapper, and obtain the server information.
-         */
-        ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("min");
-        ServerInfo targetServer = lookForServer(procedureToExecute);
-        InetAddress serverIp = targetServer.inetAddress();
-        int port = targetServer.portNumber;
+        boolean didSucceed = false;
+        boolean notFound = false;
+        ProcedureNotSupportedException procedureNotSupportedException = new ProcedureNotSupportedException("");
 
-        /**
-         * Check if the server supports the procedure.
-         */
-        if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
-            throw new ProcedureNotSupportedException("The procedure min is not supported. ");
+        int numTrials = 0;
+        while (!didSucceed && numTrials < MAX_TRY_TIME) {
+            Console.writeLine("Performing min. This is trial " + numTrials++);
+            try {
+                // Go to the port mapper, and obtain the server information.
+                ProcedureInfo procedureToExecute = Converters.methodNameToProcedureInfo("min");
+                ServerInfo targetServer = lookForServer(procedureToExecute);
+
+                if (targetServer.equals(ServerInfo.createFakeServer())) {
+                    throw new ProcedureLookupException("No server is running!! ");
+                }
+
+                Console.writeLine("Checking procedure availability on server... " + targetServer);
+
+                InetAddress serverIp = targetServer.inetAddress();
+                int port = targetServer.portNumber;
+
+                // Check if the server supports the procedure.
+                if (!procedureAvailabilityCheck(procedureToExecute, serverIp, port)) {
+                    throw new ProcedureNotSupportedException("The procedure multiply is not supported. ");
+                }
+
+                // Tell the server which procedure to execute.
+                Socket socketToServer = new Socket(serverIp, port);
+                DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
+                DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
+
+                TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
+                TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
+
+
+                // Tell the server the transaction ID
+                int transactionId = UidGenerator.next();
+                TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
+
+                // Tell the server where to reply the result
+                DatagramSocket socket = new DatagramSocket();
+                TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
+
+
+                // Get the UDP port number of the server
+                int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
+
+
+                // !!!!! ALERT !!!!!
+                // FROM THIS POINT ON, THE TCP CONNECTION IS GONE!!! GONE FOR GOOD!!!!!
+                // DO NOT ATTEMPT TO CALL Messenger.receiveXXX(dataInputStream) or Messenger.sendXXX(dataOutputStream)
+
+                // Send the two matrices to the server.
+                Console.writeLine("Sending parameters to server... ");
+                RpcArray rpcArray = new RpcArray(array);
+
+                UdpMessenger.sendRpcDataArray(socket, rpcArray.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
+
+                Console.writeLine("Waiting for result to be returned from server... ");
+                RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
+                RpcInt tag = new RpcInt(response[0]);
+                if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
+                    Console.writeLine("The server successfully returned the result. ");
+                    RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
+                    RpcDouble result = new RpcDouble(resultData[0]);
+                    didSucceed = true;
+                    return result.toDouble();
+                }
+                else {
+                    Console.writeLine("The server encountered error in the execution. ");
+                    RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
+                    RpcError error = new RpcError(errorData[0]);
+                    didSucceed = true;
+                    throw error.toException();
+                }
+            }
+            catch (ReliableUdpTransmissionFailedException e) {
+                didSucceed = false;
+                Console.writeLine(e.getMessage());
+                Console.writeLine("Parameter sending was unsuccessful. ");
+            }
+            catch (ProcedureExecutionException e) {
+                didSucceed = false;
+                Console.writeLine(e.getMessage());
+            }
+            catch (ProcedureNotSupportedException e) {
+                didSucceed = false;
+                notFound = true;
+                procedureNotSupportedException = e;
+            }
         }
-
-        /**
-         * Tell the server which procedure to execute.
-         */
-        Socket socketToServer = new Socket(serverIp, port);
-        DataOutputStream dataOutputStream = new DataOutputStream(socketToServer.getOutputStream());
-        DataInputStream dataInputStream = new DataInputStream(socketToServer.getInputStream());
-
-        TcpMessenger.sendTag(dataOutputStream, Tags.REQUEST_PROCEDURE_EXECUTION);
-        TcpMessenger.sendProcedureInfo(dataOutputStream, procedureToExecute);
-
-
-        /**
-         * Tell the server the transaction ID
-         */
-        int transactionId = UidGenerator.next();
-        TcpMessenger.sendTransactionId(dataOutputStream, transactionId);
-
-        /**
-         * Tell the server where to reply the result
-         */
-        DatagramSocket socket = new DatagramSocket();
-        TcpMessenger.sendPortNumber(dataOutputStream, socket.getLocalPort());
-
-
-        /**
-         * Get the UDP port number of the server
-         */
-        int newServerPort = TcpMessenger.receivePortNumber(dataInputStream);
-
-        /**
-         * Send the parameter to the server.
-         */
-        RpcArray rpcArray = new RpcArray(array);
-
-        UdpMessenger.sendRpcDataArray(socket, rpcArray.prepareForSend(transactionId, PART_SIZE), targetServer.inetAddress(), newServerPort);
-
-        RpcData[] response = UdpMessenger.receiveRpcDataArray(socket);
-
-        RpcInt tag = new RpcInt(response[0]);
-        if (tag.toInt() == Tags.RESPOND_PROCEDURE_EXECUTION_SUCCESS) {
-            RpcData[] resultData = UdpMessenger.receiveRpcDataArray(socket);
-            RpcDouble result = new RpcDouble(resultData[0]);
-            return result.toDouble();
-        }
-        else {
-            RpcData[] errorData = UdpMessenger.receiveRpcDataArray(socket);
-            RpcError error = new RpcError(errorData[0]);
-            throw error.toException();
-        }
-
+        if (notFound) throw procedureNotSupportedException;
+        else throw new ProcedureExecutionException("final line in mathlib client stub. ");
     }
 
     private static boolean procedureAvailabilityCheck(ProcedureInfo procedureInfo, InetAddress serverIp, int serverTcpPort) throws IOException {

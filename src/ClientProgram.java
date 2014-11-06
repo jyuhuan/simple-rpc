@@ -3,6 +3,7 @@
  * International License (http://creativecommons.org/licenses/by-nc-nd/4.0/).
  */
 
+import me.yuhuan.network.exceptions.ProcedureExecutionException;
 import me.yuhuan.rpclibraries.math.MathLib;
 import me.yuhuan.rpclibraries.math.MathLibImplementations;
 import me.yuhuan.utility.Console;
@@ -34,7 +35,7 @@ public class ClientProgram {
         };
 */
 
-        Random random = new Random();
+        /*Random random = new Random();
         int rowSize = 1000;
         //int rowSize = Integer.parseInt(args[0]);
         int colSize = 1000;
@@ -59,7 +60,7 @@ public class ClientProgram {
         }
         catch (Exception e) {
             Console.writeLine(e.getMessage());
-        }
+        }*/
 
 
         /*ArrayList<String> recorder = new ArrayList<String>();
@@ -82,29 +83,25 @@ public class ClientProgram {
             Console.writeLine(s);
         }*/
 
-        /*
-        double[] array = new double[] { 7.1, 4.4 };
+
+        //double[] array = new double[] { 7.1, 4.4, 7.9, 2.3, 9.5, 1.8, 2.3, 0.5, 0.2, 6.9, 3.3, 4.6 };
+        int dim = 1000000;
+        double[] array = new double[dim];
+        Random random = new Random();
+        for (int r = 0; r < dim; r++) {
+            array[r] = random.nextDouble();
+        }
+
         try {
             double[] sortedArray = MathLib.sort(array);
-        }
-        catch (ProcedureExecutionException e) {
-            Console.writeLine(e.getMessage());
-        }
-
-        try {
             double max = MathLib.max(array);
+            double min = MathLib.min(array);
+            int aa = 0;
         }
-        catch (ProcedureExecutionException e) {
+        catch (Exception e) {
             Console.writeLine(e.getMessage());
         }
 
-        try {
-            double min = MathLib.min(array);
-        }
-        catch (ProcedureExecutionException e) {
-            Console.writeLine(e.getMessage());
-        }
-*/
 
 
         int aaaa = 0;
