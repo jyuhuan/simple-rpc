@@ -91,6 +91,93 @@ public class ClientProgram {
     }
 
     public static void main(String[] args) throws IOException {
+
+        while (true) {
+
+            Console.writeLine("================== MAIN MENU ==================");
+            Console.writeLine("Type a number and hit ENTER to execute a procedure below: ");
+            Console.writeLine("\t1. multiply(A, B)");
+            Console.writeLine("\t2. sort(A)");
+            Console.writeLine("\t3. max(A)");
+            Console.writeLine("\t4. min(A)");
+
+            int userChoice = Console.readInt();
+            if (userChoice == 1) {
+                Console.writeLine("You want to call method multiply(A, B)");
+                Console.writeLine("Specify the height of the matrix A: ");
+                int aHeight = Console.readInt();
+                Console.writeLine("Specify the width of the matrix A: ");
+                int aWidth = Console.readInt();
+                Console.writeLine("Specify the height of the matrix B: ");
+                int bHeight = Console.readInt();
+                Console.writeLine("Specify the width of the matrix B: ");
+                int bWidth = Console.readInt();
+
+                double[][] matrixA = createRandomMatrix(aHeight, aWidth);
+                double[][] matrixB = createRandomMatrix(bHeight, bWidth);
+
+                try {
+                    double[][] result = MathLib.multiply(matrixA, matrixB);
+                    printMatrix(result);
+                }
+                catch (Exception e) {
+                    Console.writeLine(e.getMessage());
+                }
+            }
+            else if (userChoice == 2) {
+                Console.writeLine("You want to call method sort(A)");
+                Console.writeLine("Specify the dimension of the array: ");
+                int dim = Console.readInt();
+                double[] array = createRandomArray(dim);
+
+                try {
+                    double[] result = MathLib.sort(array);
+                    printArray(result);
+                }
+                catch (Exception e) {
+                    Console.writeLine(e.getMessage());
+                }
+            }
+            else if (userChoice == 3) {
+                Console.writeLine("You want to call method max(A)");
+                Console.writeLine("Specify the dimension of the array: ");
+                int dim = Console.readInt();
+                double[] array = createRandomArray(dim);
+
+                try {
+                    double result = MathLib.max(array);
+                    printDouble(result);
+                }
+                catch (Exception e) {
+                    Console.writeLine(e.getMessage());
+                }
+            }
+            else if (userChoice == 4) {
+                Console.writeLine("You want to call method min(A)");
+                Console.writeLine("Specify the dimension of the array: ");
+                int dim = Console.readInt();
+                double[] array = createRandomArray(dim);
+
+                try {
+                    double result = MathLib.min(array);
+                    printDouble(result);
+                }
+                catch (Exception e) {
+                    Console.writeLine(e.getMessage());
+                }
+            }
+            else {
+                Console.writeLine("Please only choose from 1, 2, 3, and 4. ");
+            }
+
+
+
+            Console.writeLine("Hit ENTER to return to main menu. Press Ctrl+C to quit. ");
+            String s = Console.readLine();
+
+        }
+
+/*
         int arrayDimension = 1000000;
         int rowSizeA = 1000;
         int colSizeA = 500;
@@ -119,6 +206,6 @@ public class ClientProgram {
 
 
         int aaaa = 0;
-
+*/
     }
 }

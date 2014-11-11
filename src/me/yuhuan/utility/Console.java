@@ -27,4 +27,8 @@ public class Console {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         return reader.readLine();
     }
+
+    public static int readInt() throws IOException {
+        return Integer.parseInt(readLine());
+    }
 }
